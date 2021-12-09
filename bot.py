@@ -1,3 +1,7 @@
+from discord.ext.commands.errors import MissingRequiredArgument
+from discord.ext import commands, tasks
+from dotenv import load_dotenv
+from itertools import cycle
 import asyncpraw
 import datetime
 import requests
@@ -5,10 +9,6 @@ import discord
 import random
 import ast
 import os
-from discord.ext import commands, tasks
-from discord.ext.commands.errors import MissingRequiredArgument
-from itertools import cycle
-from dotenv import load_dotenv
 
 
 load_dotenv()
@@ -25,7 +25,6 @@ subreddits_stats = get_txt()
 
 @client.event
 async def on_ready():
-    print(subreddits_stats)
     change_status.start()
     print('I am online as {0.user}'.format(client))
 
@@ -43,6 +42,7 @@ async def rsubscribe(ctx, sub, channel_name):
         channel = discord.utils.get(ctx.guild.channels, name=channel_name)
         channel_id = channel.id
         subreddits_stats[sub] = {'children': [{'id': 'placeholder', 'utc': 1.0}], 'channel_id': channel_id, 'run': False}
+        write_txt(subreddits_stats)
         for sub in subreddits_stats:
             await ctx.send(f'{sub} - {subreddits_stats[sub]["channel_id"]}')
 
@@ -50,6 +50,7 @@ async def rsubscribe(ctx, sub, channel_name):
 async def runsubscribe(ctx, sub):
     if sub in subreddits_stats:
         del subreddits_stats[sub]
+        write_txt(subreddits_stats)
         for sub in subreddits_stats:
             await ctx.send(f'{sub} - {subreddits_stats[sub]["channel_id"]}') 
     else:
@@ -92,8 +93,8 @@ async def change_status():
             channel_id = subreddits_stats[sub]['channel_id']
             new_posts = await get_reddit(sub)
             stat = await send_updates(new_posts, channel_id, sub)
-            print(f'{stat} with {sub}')
     except Exception as e:
+        print(datetime.datetime.now())
         print(e)
         
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=next(status)))
