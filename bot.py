@@ -1,8 +1,9 @@
-import discord
 import asyncpraw
 import datetime
 import requests
+import discord
 import random
+import ast
 import os
 from discord.ext import commands, tasks
 from discord.ext.commands.errors import MissingRequiredArgument
@@ -13,10 +14,18 @@ from dotenv import load_dotenv
 load_dotenv()
 client = commands.Bot(command_prefix='.')
 
-subreddits_stats = {}
+def get_txt():
+    with open('subreddits_stats.txt', 'r') as f:
+        s = f.read().replace(" ","")
+        subreddits = ast.literal_eval(s)
+    
+    return subreddits
+
+subreddits_stats = get_txt()
 
 @client.event
 async def on_ready():
+    print(subreddits_stats)
     change_status.start()
     print('I am online as {0.user}'.format(client))
 
@@ -135,6 +144,7 @@ async def get_reddit(sub):
             if len(subreddits_stats[sub]['children']) > lim:
                 subreddits_stats[sub]['children'].pop(0)
 
+    write_txt(subreddits_stats)
     return to_post
 
 async def send_updates(new_posts, channel_id, sub):
@@ -148,10 +158,8 @@ async def send_updates(new_posts, channel_id, sub):
         await channel.send(embed=embed)
     return 'done'
 
-def write_txt():
-    pass
-
-def get_txt():
-    pass
+def write_txt(file):
+    with open('subreddits_stats.txt', 'w') as f:
+        f.write(str(file))
 
 client.run(os.getenv('DISCORD_TOKEN'))
