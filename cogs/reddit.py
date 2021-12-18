@@ -1,4 +1,4 @@
-from utils import get_txt, write_txt, get_reddit, send_updates, check_sub
+from utils import get_txt, write_txt, get_reddit, check_sub
 from discord.ext.commands.errors import MissingRequiredArgument
 from discord.ext import commands, tasks
 import datetime
@@ -9,7 +9,7 @@ class Reddit(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.subreddits_stats = get_txt()
-        # self.fetch_reddit.start()
+        self.fetch_reddit.start()
     
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -57,11 +57,9 @@ channel name you want to receive the updates (if no channel name is given, the c
     async def fetch_reddit(self):
         
         try:
-            for sub in self.subreddits_stats.keys():
-                channel_id = self.subreddits_stats[sub]['channel_id']
-                new_posts = await get_reddit(self, sub)
-                await send_updates(self, new_posts, channel_id, sub)
-                print(f'done with {sub}')
+            subs = [sub for sub in self.subreddits_stats.keys()]
+            channel_ids = [channel_id['channel_id'] for channel_id in self.subreddits_stats.values()]
+            await get_reddit(self, subs, channel_ids)
         except Exception as e:
             print(datetime.datetime.now())
             print(e)

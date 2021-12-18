@@ -20,7 +20,7 @@ class Images(commands.Cog):
             await ctx.send('Found nothing!') #no results found or api down, send message
             return
         
-        for i in range(n): #loop the specified amount of times
+        for _ in range(n): #loop the specified amount of times
             v = random.randint(0,249) #get random integer from number of images received from api
             embed = discord.Embed(title=f'{os.getenv("API_CONNECTOR_ONE")} - {keyword}', color=0x00a8a5) #create embed, title and color
             embed.set_author(name="Ana V2", icon_url='https://i.imgur.com/fa1HOOn.jpg') #set author
