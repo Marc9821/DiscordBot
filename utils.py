@@ -30,7 +30,7 @@ async def get_reddit(self, subs, channel_ids):
             post_id = submission.id
             utc = submission.created_utc
             image_url = submission.url
-            if image_url.endswith('.jpg') or image_url.endswith('.png') or image_url.endswith('.jpeg'):
+            if image_url.endswith('.jpg') or image_url.endswith('.png') or image_url.endswith('.jpeg') or '/comments/' in image_url or '/gallery/' in image_url:
                 pass
             else:
                 image_url = submission.thumbnail
