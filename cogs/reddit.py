@@ -1,5 +1,5 @@
-from utils import get_txt, write_txt, get_reddit, check_sub
 from discord.ext.commands.errors import MissingRequiredArgument
+from utils import get_txt, write_txt, get_reddit, check_sub
 from discord.ext import commands, tasks
 import datetime
 import discord

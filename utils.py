@@ -15,7 +15,7 @@ async def get_reddit(self, subs, channel_ids):
 
     for (sub, channel_id) in zip(subs, channel_ids):    
         new_posts = []
-        lim = 25
+        lim = 20
         subreddit = await reddit.subreddit(sub, fetch=True)
 
         async for submission in subreddit.new(limit=lim):

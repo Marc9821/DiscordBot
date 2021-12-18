@@ -1,6 +1,6 @@
-import os
-from discord.ext import commands
 from dotenv.main import load_dotenv; load_dotenv()
+from discord.ext import commands
+import os
 
 bot = commands.Bot(command_prefix=".")
 
