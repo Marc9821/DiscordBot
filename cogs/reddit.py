@@ -59,8 +59,7 @@ channel name you want to receive the updates (if no channel name is given, the c
 
     @commands.command(brief="list all subreddits", description="Lists all subscribed subreddits, only use the command, no keywords")
     async def rlist(self, ctx):
-        async with ctx.channel.typing():
-            await send_subreddit_list(self, ctx)
+        await send_subreddit_list(self, ctx)
     
     @tasks.loop(seconds=300)
     async def fetch_reddit(self):
