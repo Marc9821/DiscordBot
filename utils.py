@@ -1,22 +1,14 @@
 import asyncprawcore
-import asyncpraw
 import datetime
 import discord
 import ast
-import os
 
 
 async def get_reddit(self, subs, channel_ids):
-    reddit = asyncpraw.Reddit(
-        client_id = os.getenv('REDDIT_CLIENT_ID'),
-        client_secret = os.getenv('REDDIT_CLIENT_SECRET'),
-        user_agent = os.getenv('REDDIT_USERAGENT'),
-    )
-
     for (sub, channel_id) in zip(subs, channel_ids):    
         new_posts = []
-        lim = 20
-        subreddit = await reddit.subreddit(sub, fetch=True)
+        lim = 10
+        subreddit = await self.reddit.subreddit(sub, fetch=True)
 
         async for submission in subreddit.new(limit=lim):
             try:
@@ -29,11 +21,19 @@ async def get_reddit(self, subs, channel_ids):
             post_url = 'https://www.reddit.com' + submission.permalink
             post_id = submission.id
             utc = submission.created_utc
-            image_url = submission.url
-            if image_url.endswith('.jpg') or image_url.endswith('.png') or image_url.endswith('.jpeg') or '/comments/' in image_url or '/gallery/' in image_url:
-                pass
+            url = submission.url
+            thumbnail_url = submission.thumbnail
+            try:
+                preview_url = submission.preview['images'][0]['source']['url']
+            except:
+                preview_url = False
+                
+            if preview_url:
+                image_url = preview_url
+            elif thumbnail_url.endswith(('.jpg', '.png', '.jpeg')):
+                image_url = thumbnail_url
             else:
-                image_url = submission.thumbnail
+                image_url = url
             
             new_posts.append([author, title, post_url, utc, image_url, post_id])
         
@@ -58,9 +58,7 @@ async def get_reddit(self, subs, channel_ids):
 
         if to_post:
             await send_updates(self, to_post, channel_id, sub)
-        print(f'done with {sub}')
     
-    await reddit.close()
     write_txt(self.subreddits_stats)
     return
 
@@ -69,25 +67,28 @@ async def send_updates(self, new_posts, channel_id, sub):
         embed = discord.Embed(title=f'{new_post[1]} - {sub}', color=0xff0000)
         embed.set_author(name="Ana V2", icon_url='https://i.imgur.com/fa1HOOn.jpg')
         embed.add_field(name="Post URL", value=new_post[2], inline=False)
-        embed.set_image(url=f'{new_post[4]}')
+        if new_post[4].startswith('http'):
+            embed.set_image(url=f'{new_post[4]}')
         embed.set_footer(text=f'{datetime.datetime.fromtimestamp(new_post[3])} | by /u/{new_post[0]}')
         channel = self.bot.get_channel(channel_id)
         await channel.send(embed=embed)
     return  
 
-async def check_sub(sub):
-    reddit = asyncpraw.Reddit(
-        client_id = os.getenv('REDDIT_CLIENT_ID'),
-        client_secret = os.getenv('REDDIT_CLIENT_SECRET'),
-        user_agent = os.getenv('REDDIT_USERAGENT'),
-    )
-
+async def check_sub(self, sub):
     exists = True
     try:
-        await reddit.subreddit(sub, fetch=True)
+        await self.reddit.subreddit(sub, fetch=True)
     except asyncprawcore.Redirect:
         exists = False
     return exists
+
+async def send_subreddit_list(self, ctx):
+    subreddits = []
+    for sub in self.subreddits_stats:
+        subreddits.append(f'**{sub}** - {self.subreddits_stats[sub]["channel_name"]}')
+    embed=discord.Embed(title="Subscribed subreddits:", description = "\n".join(subreddits))
+    embed.set_author(name="Ana V2", icon_url="https://i.imgur.com/fa1HOOn.jpg")
+    await ctx.send(embed=embed)
 
 def get_txt():
     with open('subreddits_stats.txt', 'r') as f:
