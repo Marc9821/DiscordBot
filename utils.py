@@ -1,6 +1,7 @@
 import asyncprawcore
 import datetime
 import discord
+import time
 import ast
 
 
@@ -9,6 +10,7 @@ async def get_reddit(self, subs, channel_ids):
         new_posts = []
         lim = 10
         subreddit = await self.reddit.subreddit(sub, fetch=True)
+        start = datetime.datetime.now()
 
         async for submission in subreddit.new(limit=lim):
             try:
@@ -45,19 +47,22 @@ async def get_reddit(self, subs, channel_ids):
             self.subreddits_stats[sub]['run'] = True
             self.subreddits_stats[sub]['children'].pop()
         
-        new_posts.reverse()
         to_post = []
-        for post in new_posts:
+        for post in reversed(new_posts):
             if post[5] in id_list:
                 continue
             elif post[3] >= newest_time:
                 self.subreddits_stats[sub]['children'].append({'id': post[5], 'utc': post[3]})
                 to_post.append(post)
-                if len(self.subreddits_stats[sub]['children']) > lim:
+                while len(self.subreddits_stats[sub]['children']) > lim:
                     self.subreddits_stats[sub]['children'].pop(0)
 
         if to_post:
             await send_updates(self, to_post, channel_id, sub)
+        end = datetime.datetime.now()
+        delta = end - start
+        delta_s = 2 - delta.total_seconds()
+        time.sleep(max(0,delta_s))
     
     write_txt(self.subreddits_stats)
     return

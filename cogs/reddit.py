@@ -61,7 +61,7 @@ channel name you want to receive the updates (if no channel name is given, the c
     async def rlist(self, ctx):
         await send_subreddit_list(self, ctx)
     
-    @tasks.loop(seconds=300)
+    @tasks.loop(seconds=120)
     async def fetch_reddit(self):
         
         try:
